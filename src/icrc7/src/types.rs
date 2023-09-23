@@ -1,4 +1,4 @@
-use candid::{CandidType, Deserialize};
+use candid::{CandidType, Deserialize, Principal};
 use icrc_ledger_types::icrc1::account::{Account, Subaccount};
 
 /*
@@ -44,6 +44,18 @@ pub enum TransferError {
     Duplicate { duplicate_of: u128 },
     TemporarilyUnavailable,
     GenericError { error_code: u128, message: String },
+}
+
+#[derive(CandidType, Deserialize)]
+pub struct InitArgs{
+    pub minting_authority: Option<Principal>,
+    pub icrc7_name: String,
+    pub icrc7_symbol: String,
+    pub icrc7_royalties: Option<u16>,
+    pub icrc7_royalty_recipient: Option<Account>,
+    pub icrc7_description: Option<String>,
+    pub icrc7_image: Option<String>,
+    pub icrc7_supply_cap: Option<u128>,
 }
 
 #[derive(CandidType)]
