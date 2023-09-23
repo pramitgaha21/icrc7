@@ -1,0 +1,22 @@
+type Account = record { owner : principal; subaccount : opt vec nat8 };
+type Icrc7MintArgs = record {
+  icrc7_supply_cap : opt nat;
+  icrc7_description : opt text;
+  tx_window : nat64;
+  permitted_drift : nat64;
+  icrc7_royalty_recipient : opt Account;
+  icrc7_royalties : opt nat16;
+  icrc7_symbol : text;
+  icrc7_image : opt text;
+  icrc7_name : text;
+};
+type MintCanisterError = variant {
+  FailedToCreateCanister : record { message : text };
+  FailedToInstallWasm : record { message : text };
+  AnonymousCaller;
+};
+type Result = variant { Ok : principal; Err : MintCanisterError };
+service : {
+  get_canister : () -> (opt principal) query;
+  mint_icrc7_canister : (Icrc7MintArgs) -> (Result);
+}

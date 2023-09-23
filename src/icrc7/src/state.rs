@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap};
 
 use candid::{CandidType, Decode, Encode, Principal, Nat};
 use ic_stable_structures::{
-    memory_manager::{MemoryId, MemoryManager, VirtualMemory},
+    memory_manager::{MemoryManager, VirtualMemory},
     storable::{Bound, Storable},
     DefaultMemoryImpl, StableBTreeMap,
 };
@@ -14,7 +14,7 @@ use crate::{
         ApprovalArgs, ApprovalError, Icrc7CollectionMetadata, MintArgs, MintError, TransferArgs,
         TransferError, RevokeError, ApprovalType,
     },
-    utils::default_account_from_principal,
+    utils::default_account_from_principal, get_token_stable_memory, get_log_stable_memory, account_transformer,
 };
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
@@ -171,6 +171,7 @@ impl Token {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Collection {
     pub minting_authority: Principal,
     pub tx_window: u64,
@@ -183,8 +184,10 @@ pub struct Collection {
     pub icrc7_image: Option<String>,
     pub icrc7_total_supply: u128,
     pub icrc7_supply_cap: Option<u128>,
+    #[serde(skip, default = "get_token_stable_memory")]
     pub tokens: StableBTreeMap<u128, Token, Memory>,
     pub tx_count: u128,
+    #[serde(skip, default = "get_log_stable_memory")]
     pub tx_log: StableBTreeMap<u128, Transaction, Memory>,
 }
 
@@ -202,13 +205,9 @@ impl Default for Collection {
             icrc7_royalty_recipient: None,
             icrc7_total_supply: 0,
             icrc7_supply_cap: None,
-            tokens: StableBTreeMap::init_v2(
-                MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
-            ),
+            tokens: get_token_stable_memory(),
             tx_count: 0,
-            tx_log: StableBTreeMap::init_v2(
-                MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1))),
-            ),
+            tx_log: get_log_stable_memory(),
         }
     }
 }
@@ -270,11 +269,13 @@ impl Collection {
         txn_type: TransactionType,
         memo: Option<Vec<u8>>,
     ) -> u128 {
+        let time = ic_cdk::api::time();
+        ic_cdk::println!("{}", time);
         self.tx_count += 1;
         let txn = Transaction {
             token_id,
             txn_type,
-            created_at: ic_cdk::api::time(),
+            created_at: time,
             memo,
         };
         self.tx_log.insert(self.tx_count, txn);
@@ -340,7 +341,7 @@ impl Collection {
             return Err(MintError::Unauthorized);
         }
         let owner = match args.to {
-            Some(receiver) => receiver,
+            Some(receiver) => account_transformer(receiver),
             None => default_account_from_principal(caller.clone()),
         };
         for id in args.token_ids.iter() {
@@ -348,7 +349,7 @@ impl Collection {
             if let Some(_) = self.tokens.get(id) {
                 return Err(MintError::GenericError {
                     error_code: 2,
-                    message: "Token Id Already Minted".to_string(),
+                    message:  "Token Id Already Minted".to_string(),
                 });
             }
 
@@ -367,6 +368,7 @@ impl Collection {
             TransactionType::Mint { to: owner.clone() },
             args.memo,
         );
+        self.icrc7_total_supply += 1;
         Ok(txn_id)
     }
 
@@ -417,6 +419,8 @@ impl Collection {
             });
         }
         args.token_ids.sort();
+        args.from = account_transformer(args.from);
+        args.to = account_transformer(args.to);
         let caller = Account {
             owner: caller.clone(),
             subaccount: match args.spender_subaccount{
@@ -453,12 +457,17 @@ impl Collection {
         let mut unauthorized = vec![];
         for id in args.token_ids.iter() {
             if let Some(token) = self.tokens.get(&id) {
-                if token.owner != args.from {
-                    unauthorized.push(id.clone())
-                }
+                let approval_check;
                 match token.approval_check(&caller, current_time) {
-                    ApprovalResult::Approved => continue,
-                    _ => unauthorized.push(id.clone()),
+                    ApprovalResult::Approved => {
+                        approval_check = true;
+                    },
+                    _ => {
+                        approval_check = false;
+                    },
+                }
+                if token.owner != args.from && !approval_check {
+                    unauthorized.push(id.clone())
                 }
             } else {
                 unauthorized.push(id.clone())
@@ -491,7 +500,7 @@ impl Collection {
         }
     }
 
-    pub fn icrc7_approve(&mut self, caller: &Principal, args: ApprovalArgs) -> Result<u128, ApprovalError> {
+    pub fn icrc7_approve(&mut self, caller: &Principal, mut args: ApprovalArgs) -> Result<u128, ApprovalError> {
         // generating the caller account combining the caller's principal with subaccount provided in the args
         let caller_account = Account {
             owner: caller.clone(),
@@ -500,6 +509,7 @@ impl Collection {
                 Some(subaccount) => Some(subaccount)
             },
         };
+        args.spender = account_transformer(args.spender);
         // collecting the tokens owned by the caller's account
         let mut tokens = self.icrc7_tokens_of(&caller_account);
         let mut unauthorized = vec![];
@@ -516,6 +526,8 @@ impl Collection {
                 }
             },
             ApprovalType::TokenIds(ref ids) => {
+                let mut ids = ids.clone();
+                ids.sort();
                 for id in ids.iter(){
                     if !tokens.contains(&id){
                         unauthorized.push(*id);
@@ -544,6 +556,6 @@ impl Collection {
 }
 
 thread_local! {
-    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+    pub static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
     pub static COLLECTION: RefCell<Collection> = RefCell::default();
 }

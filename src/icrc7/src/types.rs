@@ -56,6 +56,8 @@ pub struct InitArgs{
     pub icrc7_description: Option<String>,
     pub icrc7_image: Option<String>,
     pub icrc7_supply_cap: Option<u128>,
+    pub permitted_drift: u64,
+    pub tx_window: u64,
 }
 
 #[derive(CandidType)]

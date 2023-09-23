@@ -1,19 +1,15 @@
 {
   "version": 1,
   "canisters": {
-    "icrc7_backend": {
-      "type": "rust",
-      "package": "icrc7_backend",
-      "candid": "src/icrc7_backend/icrc7_backend.did"
+    "icrc7": {
+      "type": "custom",
+      "wasm": "wasm_files/icrc7.wasm",
+      "candid": "src/icrc7/icrc7.did"
     },
-    "icrc7_frontend": {
-      "type": "assets",
-      "source": [
-        "src/icrc7_frontend/assets"
-      ],
-      "dependencies": [
-        "icrc7_backend"
-      ]
+    "factory": {
+        "type": "custom",
+        "wasm": "wasm_files/factory.wasm",
+        "candid": "src/factory/factory.did"
     }
   },
   "defaults": {

@@ -22,3 +22,8 @@ dist/
 
 # environment variables
 .env
+
+wasm_files
+tests
+package.json
+package-lock.json

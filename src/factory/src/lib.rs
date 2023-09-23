@@ -1,14 +1,10 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use ic_cdk_macros::export_candid;
+use candid::Principal;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod init;
+pub mod icrc7_factory;
+pub mod state;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use icrc7_factory::*;
+
+export_candid!();

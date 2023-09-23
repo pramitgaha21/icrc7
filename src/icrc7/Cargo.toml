@@ -9,7 +9,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 candid = "0.9.6"
-ic-cdk = "0.11.0"
+ciborium = "0.2.1"
+ic-cdk = { version = "0.11.0", features = [] }
 ic-cdk-macros = "0.8.0"
 ic-stable-structures = "0.6.0-beta.0"
 icrc-ledger-types = "0.1.1"
