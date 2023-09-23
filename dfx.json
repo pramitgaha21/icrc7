@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "canisters": {
+    "icrc7_backend": {
+      "type": "rust",
+      "package": "icrc7_backend",
+      "candid": "src/icrc7_backend/icrc7_backend.did"
+    },
+    "icrc7_frontend": {
+      "type": "assets",
+      "source": [
+        "src/icrc7_frontend/assets"
+      ],
+      "dependencies": [
+        "icrc7_backend"
+      ]
+    }
+  },
+  "defaults": {
+    "build": {
+      "packtool": "",
+      "args": ""
+    }
+  },
+  "output_env_file": ".env"
+}
