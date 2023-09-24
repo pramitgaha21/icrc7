@@ -54,7 +54,7 @@ pub async fn mint_icrc7_canister(args: Icrc7MintArgs) -> Result<Principal, MintC
         return Err(MintCanisterError::AnonymousCaller)
     }
     let create_canister_args: CreateCanisterArgument = CreateCanisterArgument { settings: Some(CanisterSettings{
-        controllers: Some(vec![caller]),
+        controllers: Some(vec![caller, ic_cdk::id()]),
         compute_allocation: None,
         memory_allocation: None,
         freezing_threshold: None,
