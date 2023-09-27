@@ -9,7 +9,7 @@ pub fn init(args: InitArgs) {
         let mut c = c.borrow_mut();
         c.icrc7_name = args.icrc7_name;
         c.icrc7_description = args.icrc7_description;
-        c.icrc7_image = args.icrc7_image;
+        c.icrc7_logo = args.icrc7_logo;
         c.icrc7_royalties = args.icrc7_royalties;
         c.icrc7_royalty_recipient = args.icrc7_royalty_recipient;
         c.icrc7_supply_cap = args.icrc7_supply_cap;

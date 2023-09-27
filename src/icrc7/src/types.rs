@@ -54,7 +54,7 @@ pub struct InitArgs{
     pub icrc7_royalties: Option<u16>,
     pub icrc7_royalty_recipient: Option<Account>,
     pub icrc7_description: Option<String>,
-    pub icrc7_image: Option<String>,
+    pub icrc7_logo: Option<String>,
     pub icrc7_supply_cap: Option<u128>,
     pub permitted_drift: u64,
     pub tx_window: u64,
@@ -67,7 +67,7 @@ pub struct Icrc7CollectionMetadata {
     pub icrc7_royalties: Option<u16>,
     pub icrc7_royalty_recipient: Option<Account>,
     pub icrc7_description: Option<String>,
-    pub icrc7_image: Option<String>,
+    pub icrc7_logo: Option<String>,
     pub icrc7_total_supply: u128,
     pub icrc7_supply_cap: Option<u128>,
 }
@@ -90,7 +90,7 @@ type ApprovalArgs = record {
 */
 
 #[derive(CandidType, Deserialize)]
-pub enum ApprovalType {
+pub enum TokenType {
     Collection,
     TokenIds(Vec<u128>),
 }
@@ -99,7 +99,7 @@ pub enum ApprovalType {
 pub struct ApprovalArgs {
     pub from_subaaccount: Option<Subaccount>,
     pub spender: Account,
-    pub token_ids: ApprovalType,
+    pub token_ids: TokenType,
     pub expires_at: Option<u64>,
     pub memo: Option<Vec<u8>>,
     pub created_at_time: Option<u64>,
@@ -137,17 +137,16 @@ type RevokeError = variant {
 pub enum RevokeError {
     Unauthorized,
     ApprovalDoesNotExist,
-    ApprovalExpired,
     TooOld,
     TemporarilyUnavailable,
-    GenericError { error_code: u128, message: String },
+    GenericError{ error_code : u128, message : String },
 }
 
 #[derive(CandidType, Deserialize)]
 pub struct MintArgs {
     pub token_ids: Vec<u128>,
     pub name: String,
-    pub image: Option<String>,
+    pub logo: Option<String>,
     pub description: Option<String>,
     pub to: Option<Account>,
     pub memo: Option<Vec<u8>>,

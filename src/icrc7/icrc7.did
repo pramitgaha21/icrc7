@@ -2,7 +2,7 @@ type Account = record { owner : principal; subaccount : opt vec nat8 };
 type ApprovalArgs = record {
   from_subaaccount : opt vec nat8;
   memo : opt vec nat8;
-  token_ids : ApprovalType;
+  token_ids : TokenType;
   created_at_time : opt nat64;
   expires_at : opt nat64;
   spender : Account;
@@ -13,7 +13,6 @@ type ApprovalError = variant {
   Unauthorized : record { token_ids : vec nat };
   TooOld;
 };
-type ApprovalType = variant { TokenIds : vec nat; Collection };
 type Icrc7CollectionMetadata = record {
   icrc7_supply_cap : opt nat;
   icrc7_description : opt text;
@@ -21,7 +20,7 @@ type Icrc7CollectionMetadata = record {
   icrc7_royalty_recipient : opt Account;
   icrc7_royalties : opt nat16;
   icrc7_symbol : text;
-  icrc7_image : opt text;
+  icrc7_logo : opt text;
   icrc7_name : text;
 };
 type InitArgs = record {
@@ -33,7 +32,7 @@ type InitArgs = record {
   minting_authority : opt principal;
   icrc7_royalties : opt nat16;
   icrc7_symbol : text;
-  icrc7_image : opt text;
+  icrc7_logo : opt text;
   icrc7_name : text;
 };
 type MetadataValue = variant {
@@ -44,11 +43,11 @@ type MetadataValue = variant {
 };
 type MintArgs = record {
   to : opt Account;
+  logo : opt text;
   memo : opt vec nat8;
   name : text;
   description : opt text;
   token_ids : vec nat;
-  image : opt text;
 };
 type MintError = variant {
   GenericError : record { message : text; error_code : nat };
@@ -58,6 +57,7 @@ type Result = variant { Ok : nat; Err : ApprovalError };
 type Result_1 = variant { Ok : nat; Err : MintError };
 type Result_2 = variant { Ok : nat; Err : TransferError };
 type Standard = record { url : text; name : text };
+type TokenType = variant { TokenIds : vec nat; Collection };
 type TransferArgs = record {
   to : Account;
   spender_subaccount : opt vec nat8;
@@ -80,6 +80,7 @@ service : (InitArgs) -> {
   icrc7_balance_of : (Account) -> (nat) query;
   icrc7_collection_metadata : () -> (Icrc7CollectionMetadata) query;
   icrc7_description : () -> (opt text) query;
+  icrc7_logo : () -> (opt text) query;
   icrc7_metadata : (nat) -> (vec record { text; MetadataValue }) query;
   icrc7_mint : (MintArgs) -> (Result_1);
   icrc7_name : () -> (text) query;

@@ -6,13 +6,13 @@ use ic_stable_structures::{
     storable::{Bound, Storable},
     DefaultMemoryImpl, StableBTreeMap,
 };
-use icrc_ledger_types::{icrc1::account::{Account, DEFAULT_SUBACCOUNT}, icrc::generic_metadata_value::MetadataValue};
+use icrc_ledger_types::{icrc1::account::{Account, DEFAULT_SUBACCOUNT, Subaccount}, icrc::generic_metadata_value::MetadataValue};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     types::{
         ApprovalArgs, ApprovalError, Icrc7CollectionMetadata, MintArgs, MintError, TransferArgs,
-        TransferError, RevokeError, ApprovalType,
+        TransferError, RevokeError, TokenType,
     },
     utils::default_account_from_principal, get_token_stable_memory, get_log_stable_memory, account_transformer,
 };
@@ -104,7 +104,7 @@ impl Storable for Approval {
 pub struct Token {
     pub owner: Account,
     pub id: u128,
-    pub image: Option<String>,
+    pub logo: Option<String>,
     pub description: Option<String>,
     pub name: String,
     pub approvals: Vec<Approval>,
@@ -161,8 +161,8 @@ impl Token {
         let mut map = HashMap::new();
         map.insert("Id".to_string(), MetadataValue::Nat(Nat::from(self.id)));
         map.insert("Name".to_string(), MetadataValue::Text(self.name.clone()));
-        if let Some(ref image) = self.image{
-            map.insert("Image".to_string(), MetadataValue::Text(image.clone()));
+        if let Some(ref logo) = self.logo{
+            map.insert("logo".to_string(), MetadataValue::Text(logo.clone()));
         }
         if let Some(ref description) = self.description{
             map.insert("Description".to_string(), MetadataValue::Text(description.clone()));
@@ -181,7 +181,7 @@ pub struct Collection {
     pub icrc7_royalties: Option<u16>,
     pub icrc7_royalty_recipient: Option<Account>,
     pub icrc7_description: Option<String>,
-    pub icrc7_image: Option<String>,
+    pub icrc7_logo: Option<String>,
     pub icrc7_total_supply: u128,
     pub icrc7_supply_cap: Option<u128>,
     #[serde(skip, default = "get_token_stable_memory")]
@@ -200,7 +200,7 @@ impl Default for Collection {
             icrc7_name: "Icrc7 Token".to_string(),
             icrc7_symbol: "ICRC7".to_string(),
             icrc7_description: Some("Icrc7 Token".to_string()),
-            icrc7_image: None,
+            icrc7_logo: None,
             icrc7_royalties: None,
             icrc7_royalty_recipient: None,
             icrc7_total_supply: 0,
@@ -225,7 +225,7 @@ impl Collection {
             icrc7_royalties: self.icrc7_royalties,
             icrc7_royalty_recipient: self.icrc7_royalty_recipient.clone(),
             icrc7_description: self.icrc7_description.clone(),
-            icrc7_image: self.icrc7_image.clone(),
+            icrc7_logo: self.icrc7_logo.clone(),
             icrc7_total_supply: self.icrc7_total_supply,
             icrc7_supply_cap: self.icrc7_supply_cap,
         }
@@ -243,8 +243,8 @@ impl Collection {
         self.icrc7_description.clone()
     }
 
-    pub fn icrc7_image(&self) -> Option<String> {
-        self.icrc7_image.clone()
+    pub fn icrc7_logo(&self) -> Option<String> {
+        self.icrc7_logo.clone()
     }
 
     pub fn icrc7_royalties(&self) -> Option<u16> {
@@ -356,7 +356,7 @@ impl Collection {
             let token = Token {
                 owner: owner.clone(),
                 id: id.clone(),
-                image: args.image.clone(),
+                logo: args.logo.clone(),
                 description: args.description.clone(),
                 name: args.name.clone(),
                 approvals: vec![]
@@ -518,14 +518,14 @@ impl Collection {
             return Err(ApprovalError::GenericError { error_code: 3, message: "No Token Owned".to_string() })
         }
         match args.token_ids{
-            ApprovalType::Collection => {
+            TokenType::Collection => {
                 for id in tokens.iter(){
                     let mut token = self.tokens.get(&id).unwrap();
                     token.approve(&args);
                     self.tokens.insert(*id, token);
                 }
             },
-            ApprovalType::TokenIds(ref ids) => {
+            TokenType::TokenIds(ref ids) => {
                 let mut ids = ids.clone();
                 ids.sort();
                 for id in ids.iter(){
@@ -550,7 +550,7 @@ impl Collection {
         Ok(txn_id)
     }
 
-    pub fn revoke_approval(&mut self, caller: &Principal) -> Result<u128, RevokeError>{
+    pub fn revoke_approval(&mut self, caller: &Principal, from_subaccount: Option<Subaccount>, spender: Option<Account>, token_ids: TokenType) -> Result<u128, RevokeError>{
         todo!()
     }
 }

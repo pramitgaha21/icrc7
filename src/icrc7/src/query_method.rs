@@ -19,6 +19,13 @@ pub fn icrc7_name() -> String {
 }
 
 #[query]
+pub fn icrc7_logo() -> Option<String>{
+    COLLECTION.with(|c|{
+        c.borrow().icrc7_logo.clone()
+    })
+}
+
+#[query]
 pub fn icrc7_symbol() -> String {
     COLLECTION.with(|c| c.borrow().icrc7_symbol())
 }
