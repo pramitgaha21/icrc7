@@ -26,7 +26,7 @@ dfx deploy icrc7 --argument '(record{
   minting_authority= null;
   icrc7_royalties= null;
   icrc7_symbol= "FLOW";
-  icrc7_image= null;
+  icrc7_logo= null;
   icrc7_name= "Flower NFT"
 })'
 ```
@@ -72,7 +72,7 @@ memo= null;
 name= "ICP FLOWER X";
 description= null;
 token_ids= vec{ 1: nat; 3: nat; 5: nat; 7: nat; 9: nat};
-image= null;
+logo= null;
 })'
 ```
 
@@ -123,6 +123,9 @@ This function returns Icrc7 colletion's metadata
 ```bash
 dfx canister call icrc7 icrc7_collection_metadata
 ```
+
+`icrc7_logo: () -> (opt text) query;`
+This function returns the logo of the collection
 
 `icrc7_balance_of : (Account) -> (nat) query;`
 This function returns balance of the user
