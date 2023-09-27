@@ -136,7 +136,7 @@ dfx canister call icrc7 icrc7_balance_of '(record{
 ```
 
 `icrc7_description : () -> (opt text) query;`
-This function returns balance of the user
+This function returns description of the icrc7 canister
 
 `e.g.` calling the function
 ```bash
@@ -147,7 +147,7 @@ dfx canister call icrc7 icrc7_balance_of '(record{
 ```
 
 `icrc7_metadata : (nat) -> (vec record { text; MetadataValue }) query;`
-This function returns balance of the user
+This function returns metadata of the token
 
 `e.g.` calling the function
 ```bash
@@ -158,7 +158,7 @@ dfx canister call icrc7 icrc7_balance_of '(record{
 ```
 
 `icrc7_name : () -> (text) query;`
-This function returns balance of the user
+This function returns name of icrc7 canister
 
 `e.g.` calling the function
 ```bash
@@ -166,7 +166,7 @@ dfx canister call icrc7 icrc7_name
 ```
 
 `icrc7_owner_of : (nat) -> (opt Account) query;`
-This function returns balance of the user
+This function returns owner of the token
 
 `e.g.` calling the function
 ```bash
@@ -174,7 +174,7 @@ dfx canister call icrc7 icrc7_owner_of '(1: nat)'
 ```
 
 `icrc7_royalty_recipient : () -> (opt Account) query;`
-This function returns balance of the user
+This function returns royalty recipient
 
 `e.g.` calling the function
 ```bash
@@ -182,7 +182,7 @@ dfx canister call icrc7 icrc7_royalty_recipient
 ```
 
 `icrc7_suggested_royalties : () -> (opt nat16) query;`
-This function returns balance of the user
+This function returns royalties
 
 `e.g.` calling the function
 ```bash
@@ -190,7 +190,7 @@ dfx canister call icrc7 icrc7_suggested_royalties
 ```
 
 `icrc7_supply_cap : () -> (opt nat) query;`
-This function returns balance of the user
+This function returns supply cap
 
 `e.g.` calling the function
 ```bash
@@ -198,7 +198,7 @@ dfx canister call icrc7 icrc7_supply_cap
 ```
 
 `icrc7_supported_standards : () -> (vec Standard) query;`
-This function returns balance of the user
+This function returns standards
 
 `e.g.` calling the function
 ```bash
@@ -206,7 +206,7 @@ dfx canister call icrc7 icrc7_supported_standards
 ```
 
 `icrc7_symbol : () -> (text) query;`
-This function returns balance of the user
+This function returns symbol of icrc7 canister
 
 `e.g.` calling the function
 ```bash
@@ -214,7 +214,7 @@ dfx canister call icrc7 icrc7_symbol
 ```
 
 `icrc7_tokens_of : (Account) -> (vec nat) query;`
-This function returns balance of the user
+This function returns list of token owned by account
 
 `e.g.` calling the function
 ```bash
@@ -225,7 +225,7 @@ dfx canister call icrc7 icrc7_tokens_of '(record{
 ```
 
 `icrc7_total_supply : () -> (nat) query;`
-This function returns balance of the user
+This function returns total supply
 
 `e.g.` calling the function
 ```bash
