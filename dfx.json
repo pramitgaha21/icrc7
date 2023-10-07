@@ -2,14 +2,16 @@
   "version": 1,
   "canisters": {
     "icrc7": {
-      "type": "custom",
-      "wasm": "wasm_files/icrc7.wasm",
-      "candid": "src/icrc7/icrc7.did"
+      "type": "rust",
+      "package": "icrc7",
+      "candid": "src/icrc7/icrc7.did",
+      "cycles": "optimize"
     },
     "factory": {
-        "type": "custom",
-        "wasm": "wasm_files/factory.wasm",
-        "candid": "src/factory/factory.did"
+        "type": "rust",
+        "package": "factory",
+        "candid": "src/factory/factory.did",
+        "cycles": "optimize"
     }
   },
   "defaults": {

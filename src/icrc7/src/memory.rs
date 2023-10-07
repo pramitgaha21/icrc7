@@ -13,13 +13,13 @@ pub fn get_upgrades_memory() -> Memory {
 }
 
 pub fn get_token_stable_memory() -> StableBTreeMap<u128, Token, Memory>{
-    StableBTreeMap::init_v2(
+    StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1))),
     )
 }
 
 pub fn get_log_stable_memory() -> StableBTreeMap<u128, Transaction, Memory>{
-    StableBTreeMap::init_v2(
+    StableBTreeMap::init(
         MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2))),
     )
 }

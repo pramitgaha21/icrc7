@@ -550,9 +550,9 @@ impl Collection {
         Ok(txn_id)
     }
 
-    pub fn revoke_approval(&mut self, caller: &Principal, from_subaccount: Option<Subaccount>, spender: Option<Account>, token_ids: TokenType) -> Result<u128, RevokeError>{
-        todo!()
-    }
+    // pub fn revoke_approval(&mut self, caller: &Principal, from_subaccount: Option<Subaccount>, spender: Option<Account>, token_ids: TokenType) -> Result<u128, RevokeError>{
+    //     todo!()
+    // }
 }
 
 thread_local! {
