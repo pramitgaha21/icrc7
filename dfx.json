@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "canisters": {
+      "icrc7": {
+        "type": "rust",
+        "package": "icrc7",
+        "candid": "icrc7/icrc7.did",
+        "optimize": "cycles"
+      }
+    },
+    "defaults": {
+      "build": {
+        "packtool": "",
+        "args": ""
+      }
+    },
+    "output_env_file": ".env"
+  }
