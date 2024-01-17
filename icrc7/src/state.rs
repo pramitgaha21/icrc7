@@ -246,7 +246,6 @@ impl Icrc7Collection {
     }
 
     fn log_transaction(&mut self, txn: Transaction) -> u128 {
-        ic_cdk::println!("transaction time: {}", txn.created_at_time);
         let txn_id = self.txn_count;
         self.txn_log.insert(txn_id, txn);
         self.txn_count += 1;
@@ -523,6 +522,7 @@ impl Icrc7Collection {
                 return Err(e);
             }
         }
+        let txn_time = args.created_at_time.unwrap_or(current_time);
         let mut unauthorized = vec![];
         for id in args.token_ids.iter() {
             if let None = self.icrc7_tokens.get(id) {
@@ -556,7 +556,7 @@ impl Icrc7Collection {
                         to: args.to.clone(),
                     },
                     args.token_ids.clone(),
-                    current_time,
+                    txn_time,
                     args.memo.clone(),
                 ));
                 return Ok(tx_id);
@@ -582,7 +582,7 @@ impl Icrc7Collection {
                         to: args.to.clone(),
                     },
                     args.token_ids.clone(),
-                    current_time,
+                    txn_time,
                     args.memo.clone(),
                 ));
                 return Ok(tx_id);
