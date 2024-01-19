@@ -1,3 +1,4 @@
+use candid::CandidType;
 use ic_cdk_macros::query;
 use icrc_ledger_types::icrc1::account::Account;
 
@@ -69,4 +70,20 @@ pub fn icrc7_balance_of(account: Account) -> u128 {
 #[query]
 pub fn icrc7_tokens_of(account: Account) -> Vec<Icrc7TokenId> {
     ICRC7_COLLECTION.with(|c| c.borrow().icrc7_tokens_of(&account))
+}
+
+#[derive(CandidType)]
+pub struct Standard{
+    pub name: String,
+    pub url: String
+}
+
+#[query]
+pub fn icrc7_supported_standards() -> Vec<Standard>{
+    let mut standard = Vec::new();
+    standard.push(Standard{
+        name: "ICRC-7".into(),
+        url: "https://github.com/dfinity/ICRC/ICRCs/ICRC-7".into()
+    });
+    standard
 }

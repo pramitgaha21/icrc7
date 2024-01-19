@@ -9,5 +9,6 @@ use ic_cdk_macros::export_candid;
 use icrc7_types::*;
 use icrc_ledger_types::icrc1::account::Account;
 use state::*;
+use query_method::Standard;
 
 export_candid!();

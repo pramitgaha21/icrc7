@@ -427,6 +427,9 @@ impl Icrc7Collection {
             return Err(ApprovalError::GenericError { error_code: 4, message: "Anonymous Identity Provided".into() })
         }
         args.spender = account_transformer(args.spender.clone());
+        if caller == args.spender{
+            return Err(ApprovalError::GenericError { error_code: 5, message: "Self Approval".into() })
+        }
         let owned_icrc7_tokens_by_caller = self.icrc7_tokens_of(&caller);
         match args.token_ids {
             None => {
@@ -509,6 +512,9 @@ impl Icrc7Collection {
         let caller = account_transformer(caller);
         args.from = account_transformer(args.from);
         args.to = account_transformer(args.to);
+        if args.from == args.to{
+            return Err(TransferError::GenericError { error_code: 6, message: "Self Transfer".into() })
+        }
         let current_time = ic_cdk::api::time();
         if let Some(time) = args.created_at_time {
             if time < (current_time - self.tx_window - self.permitted_drift) {

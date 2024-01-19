@@ -5,7 +5,8 @@
         "type": "rust",
         "package": "icrc7",
         "candid": "icrc7/icrc7.did",
-        "optimize": "cycles"
+        "optimize": "cycles",
+        "wasm": "gzip"
       }
     },
     "defaults": {
