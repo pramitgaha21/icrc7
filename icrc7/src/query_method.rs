@@ -1,89 +1,79 @@
-use candid::CandidType;
 use ic_cdk_macros::query;
 use icrc_ledger_types::icrc1::account::Account;
 
-use crate::{
-    icrc7_types::Icrc7CollectionMetadata,
-    state::{Icrc7TokenId, Icrc7TokenMetadata, ICRC7_COLLECTION},
-};
+use crate::{state::STATE, Standard};
 
 #[query]
-pub fn icrc7_collection_metadata() -> Icrc7CollectionMetadata {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_collection_metadata())
+pub fn icrc7_symbol() -> String{
+    STATE.with(|s| s.borrow().icrc7_symbol())
 }
 
 #[query]
-pub fn icrc7_name() -> String {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_name())
+pub fn icrc7_name() -> String{
+    STATE.with(|s| s.borrow().icrc7_name())
 }
 
 #[query]
-pub fn icrc7_symbol() -> String {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_symbol())
+pub fn icrc7_description() -> Option<String>{
+    STATE.with(|s| s.borrow().icrc7_description())
 }
 
 #[query]
-pub fn icrc7_royalties() -> Option<u16> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_royalties())
+pub fn icrc7_logo() -> Option<String>{
+    STATE.with(|s| s.borrow().icrc7_logo())
 }
 
 #[query]
-pub fn icrc7_royalty_recipient() -> Option<Account> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_royalty_recipient())
+pub fn icrc7_total_supply() -> u128{
+    STATE.with(|s| s.borrow().icrc7_total_supply())
 }
 
 #[query]
-pub fn icrc7_description() -> Option<String> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_description())
+pub fn icrc7_supply_cap() -> Option<u128>{
+    STATE.with(|s| s.borrow().icrc7_supply_cap())
 }
 
 #[query]
-pub fn icrc7_image() -> Option<String> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_image())
+pub fn icrc7_max_query_batch_size() -> Option<u128>{
+    STATE.with(|s| s.borrow().icrc7_max_query_batch_size())
 }
 
 #[query]
-pub fn icrc7_total_supply() -> u128 {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_total_supply())
+pub fn icrc7_max_update_batch_size() -> Option<u128>{
+    STATE.with(|s| s.borrow().
+    icrc7_max_update_batch_size())
 }
 
 #[query]
-pub fn icrc7_supply_cap() -> Option<u128> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_supply_cap())
+pub fn icrc7_default_take_value() -> Option<u128>{
+    STATE.with(|s| s.borrow().icrc7_default_take_value())
 }
 
 #[query]
-pub fn icrc7_metadata(id: Icrc7TokenId) -> Icrc7TokenMetadata {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_metadata(&id))
+pub fn icrc7_max_take_value() -> Option<u128>{
+    STATE.with(|s| s.borrow().icrc7_max_take_value())
 }
 
 #[query]
-pub fn icrc7_owner_of(id: Icrc7TokenId) -> Account {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_owner_of(&id))
+pub fn icrc7_max_memo_size() -> Option<u128>{
+    STATE.with(|s| s.borrow().
+    icrc7_max_memo_size())
 }
 
 #[query]
-pub fn icrc7_balance_of(account: Account) -> u128 {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_balance_of(&account))
+pub fn icrc7_atomic_batch_transfers() -> Option<bool>{
+    STATE.with(|s| s.borrow().icrc7_atomic_batch_transfers())
 }
 
 #[query]
-pub fn icrc7_tokens_of(account: Account) -> Vec<Icrc7TokenId> {
-    ICRC7_COLLECTION.with(|c| c.borrow().icrc7_tokens_of(&account))
-}
-
-#[derive(CandidType)]
-pub struct Standard{
-    pub name: String,
-    pub url: String
+pub fn icrc7_owner_of(ids: Vec<u128>) -> Vec<Option<Account>> {
+    STATE.with(|s| s.borrow().icrc7_owner_of(&ids))
 }
 
 #[query]
 pub fn icrc7_supported_standards() -> Vec<Standard>{
-    let mut standard = Vec::new();
-    standard.push(Standard{
+    vec![Standard{
         name: "ICRC-7".into(),
         url: "https://github.com/dfinity/ICRC/ICRCs/ICRC-7".into()
-    });
-    standard
+    }]
 }

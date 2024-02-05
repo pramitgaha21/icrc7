@@ -1,2 +1,6 @@
 /target
-/.dfx/local
+/.dfx
+/.env
+/node_modules
+/pnpm-lock.yaml
+/wasm_files

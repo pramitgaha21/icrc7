@@ -1,31 +1,70 @@
 use ic_cdk_macros::init;
+use ic_stable_structures::{writer::Writer, Memory as _};
+use icrc_ledger_types::icrc1::account::Account;
 
-use crate::{icrc7_types::InitArgs, utils::{account_transformer, default_account}, state::ICRC7_COLLECTION};
+use crate::{icrc7_types::InitArg, memory, state::STATE, utils::account_transformer};
 
 #[init]
-pub fn init(args: InitArgs) {
-    let minting_authority = match args.minting_authority{
-        Some(account) => account_transformer(account),
+pub fn init(arg: InitArg) {
+    let minting_authority = account_transformer(match arg.minting_account {
         None => {
             let caller = ic_cdk::caller();
-            default_account(&caller)
+            account_transformer(Account {
+                owner: caller,
+                subaccount: None,
+            })
         }
-    };
-    ICRC7_COLLECTION.with(|c|{
-        let mut c = c.borrow_mut();
-        c.minting_authority = Some(minting_authority);
-        c.icrc7_name = args.icrc7_name;
-        c.icrc7_symbol = args.icrc7_symbol;
-        c.icrc7_royalties = args.icrc7_royalties;
-        c.icrc7_royalty_recipient = args.icrc7_royalty_recipient;
-        c.icrc7_description = args.icrc7_description;
-        c.icrc7_image = args.icrc7_image;
-        c.icrc7_supply_cap = args.icrc7_supply_cap;
-        if let Some(tx_window) = args.tx_window{
-            c.tx_window = tx_window * 60 * 60 * 1000_000_000;
-        }
-        if let Some(permitted_drift) = args.permitted_drift{
-            c.permitted_drift = permitted_drift * 60 * 1000_000_000;
-        }
+        Some(acc) => account_transformer(acc),
+    });
+    STATE.with(|s| {
+        let mut s = s.borrow_mut();
+        s.minting_authority = Some(minting_authority);
+        s.icrc7_symbol = arg.icrc7_symbol;
+        s.icrc7_name = arg.icrc7_name;
+        s.icrc7_description = arg.icrc7_description;
+        s.icrc7_logo = arg.icrc7_logo;
+        s.icrc7_total_supply = arg.icrc7_total_supply;
+        s.icrc7_supply_cap = arg.icrc7_supply_cap;
+        s.icrc7_max_query_batch_size = arg.icrc7_max_query_batch_size;
+        s.icrc7_max_update_batch_size = arg.icrc7_max_update_batch_size;
+        s.icrc7_max_take_value = arg.icrc7_max_take_value;
+        s.icrc7_default_take_value = arg.icrc7_default_take_value;
+        s.icrc7_max_memo_size = arg.icrc7_max_memo_size;
+        s.icrc7_atomic_batch_transfers = arg.icrc7_atomic_batch_transfers;
+        s.tx_window = arg.tx_window;
+        s.permitted_drift = arg.permitted_drift;
+    })
+}
+
+pub fn pre_upgrade(){
+    let mut state_bytes = vec![];
+    STATE.with(|s| ciborium::ser::into_writer(&*s.borrow(), &mut state_bytes))
+        .expect("failed to encode state");
+
+    // Write the length of the serialized bytes to memory, followed by the
+    // by the bytes themselves.
+    let len = state_bytes.len() as u32;
+    let mut memory = memory::get_upgrades_memory();
+    let mut writer = Writer::new(&mut memory, 0);
+    writer.write(&len.to_le_bytes()).unwrap();
+    writer.write(&state_bytes).unwrap()
+}
+
+pub fn post_upgrade(){
+    let memory = memory::get_upgrades_memory();
+
+    // Read the length of the state bytes.
+    let mut state_len_bytes = [0; 4];
+    memory.read(0, &mut state_len_bytes);
+    let state_len = u32::from_le_bytes(state_len_bytes) as usize;
+
+    // Read the bytes
+    let mut state_bytes = vec![0; state_len];
+    memory.read(4, &mut state_bytes);
+
+    // Deserialize and set the state.
+    let state = ciborium::de::from_reader(&*state_bytes).expect("failed to decode state");
+    STATE.with(|s| {
+        *s.borrow_mut() = state
     });
 }

@@ -1,7 +1,11 @@
-use crate::state::MEMORY_MANAGER;
-use crate::state::{Icrc7Token, Transaction};
-use ic_stable_structures::memory_manager::{MemoryId, VirtualMemory};
-use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
+use crate::{
+    icrc7_types::Transaction,
+    state::{Icrc7Token, MEMORY_MANAGER},
+};
+use ic_stable_structures::{
+    memory_manager::{MemoryId, VirtualMemory},
+    DefaultMemoryImpl, StableBTreeMap,
+};
 
 // A memory for upgrades, where data from the heap can be serialized/deserialized.
 const UPGRADES: MemoryId = MemoryId::new(0);
