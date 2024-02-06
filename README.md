@@ -53,7 +53,7 @@ token_name= null
 })'
 ```
 
-dfx canister call icrc7 icrc7_transfer '(vec{
+<!-- dfx canister call icrc7 icrc7_transfer '(vec{
 record{
 to=record {
 owner = principal "t4egw-clf4w-qbpli-svryg-7yqq6-jt2yj-7v755-mabir-zmx6i-vp4fr-fqe";
@@ -74,7 +74,7 @@ from_subaccount= null;
 memo= null;
 created_at_time= opt 1707100000000000000
 }
-})'
+})' -->
 
 <!-- ##### Deploying icrc7
 ```bash
