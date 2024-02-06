@@ -8,7 +8,7 @@ use icrc_ledger_types::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(CandidType, Serialize, Deserialize)]
+#[derive(CandidType, Serialize, Deserialize, Debug)]
 pub enum TransactionType {
     Mint {
         tid: u128,
@@ -28,7 +28,7 @@ pub enum TransactionType {
     },
 }
 
-#[derive(CandidType, Serialize, Deserialize)]
+#[derive(CandidType, Serialize, Deserialize, Debug)]
 pub struct Transaction {
     pub ts: u64,
     pub txn_id: u128,
@@ -106,7 +106,7 @@ type TransferError = variant {
 };
 */
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct TransferArg {
     pub from_subaccount: Option<Subaccount>,
     pub to: Account,

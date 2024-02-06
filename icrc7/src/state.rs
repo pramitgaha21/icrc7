@@ -236,7 +236,7 @@ impl State {
         caller: &Account,
         args: &TransferArg,
     ) -> Result<(), TransferError> {
-        let mut count = self.txn_count - 1;
+        let mut count = self.txn_count;
         while count != 0 {
             let txn = self.txn_log.get(&count).unwrap();
             if txn.ts < *allowed_past_time {
@@ -248,6 +248,8 @@ impl State {
                     ref from,
                     ref to,
                 } => {
+                    ic_cdk::println!("Transaction: {:?}", txn);
+                    ic_cdk::println!("Transfer Args: {:?}", args);
                     if &args.token_id == tid
                         && caller == from
                         && &args.to == to
@@ -268,6 +270,7 @@ impl State {
                 }
             }
         }
+        ic_cdk::println!("deduplication not found");
         Ok(())
     }
 
@@ -284,6 +287,7 @@ impl State {
     ) -> u128 {
         let txn_id = self.get_txn_id();
         let txn = Transaction::new(txn_id, txn_type, ts, memo);
+        ic_cdk::println!("logged txn: {:?}", txn);
         self.txn_log.insert(txn_id, txn);
         txn_id
     }
@@ -618,7 +622,12 @@ impl State {
         match prev {
             Some(prev) => match list.iter().position(|id| *id == prev) {
                 None => vec![],
-                Some(index) => list.iter().map(|id| *id).skip(index).take(take as usize).collect(),
+                Some(index) => list
+                    .iter()
+                    .map(|id| *id)
+                    .skip(index)
+                    .take(take as usize)
+                    .collect(),
             },
             None => list[0..take as usize].to_vec(),
         }
@@ -645,7 +654,12 @@ impl State {
             None => owned_tokens[0..=take as usize].to_vec(),
             Some(prev) => match owned_tokens.iter().position(|id| *id == prev) {
                 None => vec![],
-                Some(index) => owned_tokens.iter().map(|id| *id).skip(index).take(take as usize).collect(),
+                Some(index) => owned_tokens
+                    .iter()
+                    .map(|id| *id)
+                    .skip(index)
+                    .take(take as usize)
+                    .collect(),
             },
         }
     }
