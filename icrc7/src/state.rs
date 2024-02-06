@@ -1,17 +1,20 @@
 use std::{cell::RefCell, collections::HashMap};
 
+use crate::{
+    icrc7_types::{
+        BurnResult, Icrc7MintArg, Icrc7TokenMetadata, MintError, MintResult, Transaction,
+        TransactionType, TransferArg, TransferError, TransferResult,
+    },
+    memory::{get_log_memory, get_token_map_memory, Memory},
+    utils::{account_transformer, burn_account},
+    BurnError, Icrc7BurnArg,
+};
 use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{
     memory_manager::MemoryManager, storable::Bound, DefaultMemoryImpl, StableBTreeMap, Storable,
 };
 use icrc_ledger_types::{icrc::generic_metadata_value::MetadataValue, icrc1::account::Account};
 use serde::{Deserialize, Serialize};
-use crate::{
-    icrc7_types::{
-        BurnResult, Icrc7MintArg, Icrc7TokenMetadata, MintError, MintResult, Transaction,
-        TransactionType, TransferArg, TransferError, TransferResult,
-    }, memory::{get_log_memory, get_token_map_memory, Memory}, utils::{account_transformer, burn_account}, BurnError, Icrc7BurnArg
-};
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Icrc7Token {
@@ -106,7 +109,7 @@ impl Icrc7Token {
         metadata
     }
 
-    fn burn(&mut self, burn_address: Account){
+    fn burn(&mut self, burn_address: Account) {
         self.token_owner = burn_address;
     }
 }
@@ -205,7 +208,7 @@ impl State {
         self.icrc7_default_take_value
     }
 
-    pub fn icrc7_max_take_value(&self) -> Option<u128>{
+    pub fn icrc7_max_take_value(&self) -> Option<u128> {
         self.icrc7_max_take_value
     }
 
@@ -291,15 +294,24 @@ impl State {
         caller: &Account,
         arg: &TransferArg,
     ) -> Result<(), TransferError> {
-        if let Some(time) = arg.created_at_time{
-            let allowed_past_time = *current_time - self.tx_window.unwrap_or(State::DEFAULT_TX_WINDOW) - self.permitted_drift.unwrap_or(State::DEFAULT_PERMITTED_DRIFT);
-            let allowed_future_time = *current_time + self.permitted_drift.unwrap_or(State::DEFAULT_PERMITTED_DRIFT);
-            if time < allowed_past_time{
-                return Err(TransferError::TooOld)
-            }else if time > allowed_future_time{
-                return Err(TransferError::CreatedInFuture { ledger_time: current_time.clone() })
+        if let Some(time) = arg.created_at_time {
+            let allowed_past_time = *current_time
+                - self.tx_window.unwrap_or(State::DEFAULT_TX_WINDOW)
+                - self
+                    .permitted_drift
+                    .unwrap_or(State::DEFAULT_PERMITTED_DRIFT);
+            let allowed_future_time = *current_time
+                + self
+                    .permitted_drift
+                    .unwrap_or(State::DEFAULT_PERMITTED_DRIFT);
+            if time < allowed_past_time {
+                return Err(TransferError::TooOld);
+            } else if time > allowed_future_time {
+                return Err(TransferError::CreatedInFuture {
+                    ledger_time: current_time.clone(),
+                });
             }
-            self.txn_deduplication_check(&allowed_past_time, caller, arg)?
+            self.txn_deduplication_check(&allowed_past_time, caller, arg)?;
         }
         // checking is token for the corresponding ID exists or not
         if let None = self.tokens.get(&arg.token_id) {
@@ -319,12 +331,6 @@ impl State {
         // checking if receiver and sender have same address
         if arg.to == *caller {
             return Err(TransferError::InvalidRecipient);
-        }
-        if let Some(_) = arg.created_at_time {
-            // transaction deduplication check
-            if let Err(e) = self.txn_deduplication_check(&current_time, caller, &arg) {
-                return Err(e);
-            }
         }
         let token = self.tokens.get(&arg.token_id).unwrap();
         // checking if the caller is authorized to make transaction
@@ -351,19 +357,17 @@ impl State {
             .unwrap_or(State::DEFAULT_MAX_UPDATE_BATCH_SIZE);
         let mut txn_results = vec![None; args.len()];
         if args.len() as u128 > max_update_batch_size {
-            txn_results.insert(
-                0,
-                Some(Err(TransferError::GenericBatchError {
-                    error_code: 2,
-                    message: "Exceed Max allowed Update Batch Size".into(),
-                })),
-            );
+            txn_results[0] = Some(Err(TransferError::GenericBatchError {
+                error_code: 2,
+                message: "Exceed Max allowed Update Batch Size".into(),
+            }));
             return txn_results;
         }
-        if *caller == Principal::anonymous(){
-            txn_results.insert(0, Some(Err(
-                TransferError::GenericBatchError { error_code: 100, message: "Anonymous Identity".into() }
-            )));
+        if *caller == Principal::anonymous() {
+            txn_results[0] = Some(Err(TransferError::GenericBatchError {
+                error_code: 100,
+                message: "Anonymous Identity".into(),
+            }));
             return txn_results;
         }
         let current_time = ic_cdk::api::time();
@@ -374,7 +378,9 @@ impl State {
             });
             arg.to = account_transformer(arg.to);
             if let Err(e) = self.mock_transfer(&current_time, &caller_account, &arg) {
-                txn_results.insert(index, Some(Err(e)))
+                let msg = format!("{:?}", txn_results);
+                ic_cdk::print(&msg);
+                txn_results[index] = Some(Err(e));
             }
         }
         if let Some(true) = self.icrc7_atomic_batch_transfers {
@@ -412,7 +418,7 @@ impl State {
                 time,
                 arg.memo.clone(),
             );
-            txn_results.insert(index, Some(Ok(txn_id)));
+            txn_results[index] = Some(Ok(txn_id));
         }
         txn_results
     }
@@ -481,24 +487,35 @@ impl State {
         Ok(txn_id)
     }
 
-    fn mock_burn(&self, caller: &Account, arg: &Icrc7BurnArg) -> Result<(), BurnError>{
-        if let Some(ref memo) = arg.memo{
-            if memo.len() as u128 > self.icrc7_max_memo_size.unwrap_or(State::DEFAULT_MAX_MEMO_SIZE){
-                return Err(BurnError::GenericError { error_code: 3, message: "Exceeds Max Memo Length".into() })
+    fn mock_burn(&self, caller: &Account, arg: &Icrc7BurnArg) -> Result<(), BurnError> {
+        if let Some(ref memo) = arg.memo {
+            if memo.len() as u128
+                > self
+                    .icrc7_max_memo_size
+                    .unwrap_or(State::DEFAULT_MAX_MEMO_SIZE)
+            {
+                return Err(BurnError::GenericError {
+                    error_code: 3,
+                    message: "Exceeds Max Memo Length".into(),
+                });
             }
         }
-        match self.tokens.get(&arg.token_id){
+        match self.tokens.get(&arg.token_id) {
             None => Err(BurnError::NonExistingTokenId),
             Some(ref token) => {
-                if token.token_owner != *caller{
-                    return Err(BurnError::Unauthorized)
+                if token.token_owner != *caller {
+                    return Err(BurnError::Unauthorized);
                 }
                 Ok(())
             }
         }
     }
 
-    pub fn icrc7_burn(&mut self, caller: &Principal, mut args: Vec<Icrc7BurnArg>) -> Vec<Option<BurnResult>> {
+    pub fn icrc7_burn(
+        &mut self,
+        caller: &Principal,
+        mut args: Vec<Icrc7BurnArg>,
+    ) -> Vec<Option<BurnResult>> {
         if args.len() == 0 {
             return vec![Some(Err(BurnError::GenericBatchError {
                 error_code: 1,
@@ -506,18 +523,19 @@ impl State {
             }))];
         }
         let mut txn_results = vec![None; args.len()];
-        if *caller == Principal::anonymous(){
-            txn_results.insert(0, Some(Err(
-                BurnError::GenericBatchError { error_code: 100, message: "Anonymous Identity".into() }
-            )));
+        if *caller == Principal::anonymous() {
+            txn_results[0] = Some(Err(BurnError::GenericBatchError {
+                error_code: 100,
+                message: "Anonymous Identity".into(),
+            }));
             return txn_results;
         }
-        for (index, arg) in args.iter_mut().enumerate(){
-            let caller = account_transformer(Account{
+        for (index, arg) in args.iter_mut().enumerate() {
+            let caller = account_transformer(Account {
                 owner: caller.clone(),
-                subaccount: arg.from_subaccount
+                subaccount: arg.from_subaccount,
             });
-            if let Err(e) = self.mock_burn(&caller, arg){
+            if let Err(e) = self.mock_burn(&caller, arg) {
                 txn_results.insert(index, Some(Err(e)))
             }
         }
@@ -529,43 +547,59 @@ impl State {
                 return txn_results;
             }
         }
-        for (index, arg) in args.iter().enumerate(){
-            let caller = account_transformer(Account{
+        for (index, arg) in args.iter().enumerate() {
+            let caller = account_transformer(Account {
                 owner: caller.clone(),
-                subaccount: arg.from_subaccount
+                subaccount: arg.from_subaccount,
             });
             let burn_address = burn_account();
-            if let Some(Err(e)) = txn_results.get(index).unwrap(){
-                match e{
-                    BurnError::GenericBatchError { error_code: _, message: _ } => return txn_results,
-                    _ => continue
+            if let Some(Err(e)) = txn_results.get(index).unwrap() {
+                match e {
+                    BurnError::GenericBatchError {
+                        error_code: _,
+                        message: _,
+                    } => return txn_results,
+                    _ => continue,
                 }
             }
             let mut token = self.tokens.get(&arg.token_id).unwrap();
             token.burn(burn_address.clone());
             let tid = self.log_transaction(
-                TransactionType::Burn { tid: arg.token_id, from: caller, to: burn_address }
-                , ic_cdk::api::time(), arg.memo.clone());
+                TransactionType::Burn {
+                    tid: arg.token_id,
+                    from: caller,
+                    to: burn_address,
+                },
+                ic_cdk::api::time(),
+                arg.memo.clone(),
+            );
             txn_results.insert(index, Some(Ok(tid)))
         }
         txn_results
     }
 
-    pub fn icrc7_token_metadata(&self, token_ids: &[u128]) -> Vec<Option<Icrc7TokenMetadata>>{
+    pub fn icrc7_token_metadata(&self, token_ids: &[u128]) -> Vec<Option<Icrc7TokenMetadata>> {
+        if token_ids.len() as u128
+            > self
+                .icrc7_max_query_batch_size
+                .unwrap_or(State::DEFAULT_MAX_QUERY_BATCH_SIZE)
+        {
+            ic_cdk::trap("Exceeds Max Query Batch Size")
+        }
         let mut metadata_list = vec![None; token_ids.len()];
-        for (index, tid) in token_ids.iter().enumerate(){
-            if let Some(ref token) = self.tokens.get(tid){
+        for (index, tid) in token_ids.iter().enumerate() {
+            if let Some(ref token) = self.tokens.get(tid) {
                 metadata_list.insert(index, Some(token.token_metadata()))
             }
         }
         metadata_list
     }
 
-    pub fn icrc7_balance_of(&self, accounts: &[Account]) -> Vec<u128>{
+    pub fn icrc7_balance_of(&self, accounts: &[Account]) -> Vec<u128> {
         let mut count_list = vec![0; accounts.len()];
-        accounts.iter().enumerate().for_each(|(index, account)|{
-            self.tokens.iter().for_each(|(_id, ref token)|{
-                if token.token_owner == *account{
+        accounts.iter().enumerate().for_each(|(index, account)| {
+            self.tokens.iter().for_each(|(_id, ref token)| {
+                if token.token_owner == *account {
                     let current_count = count_list[index];
                     count_list[index] = current_count + 1;
                 }
@@ -574,16 +608,46 @@ impl State {
         count_list
     }
 
-    pub fn icrc7_tokens(&self, prev: Option<u128>, take: Option<u128>) -> Vec<u128>{
+    pub fn icrc7_tokens(&self, prev: Option<u128>, take: Option<u128>) -> Vec<u128> {
         let take = take.unwrap_or(State::DEFAULT_TAKE_VALUE);
-        if take > State::DEFAULT_MAX_TAKE_VALUE{
+        if take > State::DEFAULT_MAX_TAKE_VALUE {
             ic_cdk::trap("Exceeds Max Take Value")
         }
-        let prev = prev.unwrap_or(0);
         let mut list: Vec<u128> = self.tokens.iter().map(|(k, _)| k).collect();
         list.sort();
-        // list[prev as usize..=take as usize].to_vec()
-        todo!()
+        match prev {
+            Some(prev) => match list.iter().position(|id| *id == prev) {
+                None => vec![],
+                Some(index) => list.iter().map(|id| *id).skip(index).take(take as usize).collect(),
+            },
+            None => list[0..take as usize].to_vec(),
+        }
+    }
+
+    pub fn icrc7_tokens_of(
+        &self,
+        account: Account,
+        prev: Option<u128>,
+        take: Option<u128>,
+    ) -> Vec<u128> {
+        let take = take.unwrap_or(State::DEFAULT_TAKE_VALUE);
+        if take > State::DEFAULT_MAX_TAKE_VALUE {
+            ic_cdk::trap("Exceeds Max Take Value")
+        }
+        let mut owned_tokens = vec![];
+        for (id, token) in self.tokens.iter() {
+            if token.token_owner == account {
+                owned_tokens.push(id);
+            }
+        }
+        owned_tokens.sort();
+        match prev {
+            None => owned_tokens[0..=take as usize].to_vec(),
+            Some(prev) => match owned_tokens.iter().position(|id| *id == prev) {
+                None => vec![],
+                Some(index) => owned_tokens.iter().map(|id| *id).skip(index).take(take as usize).collect(),
+            },
+        }
     }
 }
 

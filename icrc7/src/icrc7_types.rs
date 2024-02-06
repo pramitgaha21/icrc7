@@ -115,7 +115,7 @@ pub struct TransferArg {
     pub created_at_time: Option<u64>,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Deserialize, Clone, Debug)]
 pub enum TransferError {
     NonExistingTokenId,
     InvalidRecipient,
@@ -179,7 +179,6 @@ pub struct InitArg {
     pub icrc7_name: String,
     pub icrc7_description: Option<String>,
     pub icrc7_logo: Option<String>,
-    pub icrc7_total_supply: u128,
     pub icrc7_supply_cap: Option<u128>,
     pub icrc7_max_query_batch_size: Option<u128>,
     pub icrc7_max_update_batch_size: Option<u128>,
@@ -192,7 +191,7 @@ pub struct InitArg {
 }
 
 #[derive(CandidType)]
-pub struct Standard{
+pub struct Standard {
     pub name: String,
-    pub url: String
+    pub url: String,
 }

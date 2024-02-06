@@ -23,7 +23,6 @@ pub fn init(arg: InitArg) {
         s.icrc7_name = arg.icrc7_name;
         s.icrc7_description = arg.icrc7_description;
         s.icrc7_logo = arg.icrc7_logo;
-        s.icrc7_total_supply = arg.icrc7_total_supply;
         s.icrc7_supply_cap = arg.icrc7_supply_cap;
         s.icrc7_max_query_batch_size = arg.icrc7_max_query_batch_size;
         s.icrc7_max_update_batch_size = arg.icrc7_max_update_batch_size;
@@ -36,9 +35,10 @@ pub fn init(arg: InitArg) {
     })
 }
 
-pub fn pre_upgrade(){
+pub fn pre_upgrade() {
     let mut state_bytes = vec![];
-    STATE.with(|s| ciborium::ser::into_writer(&*s.borrow(), &mut state_bytes))
+    STATE
+        .with(|s| ciborium::ser::into_writer(&*s.borrow(), &mut state_bytes))
         .expect("failed to encode state");
 
     // Write the length of the serialized bytes to memory, followed by the
@@ -50,7 +50,7 @@ pub fn pre_upgrade(){
     writer.write(&state_bytes).unwrap()
 }
 
-pub fn post_upgrade(){
+pub fn post_upgrade() {
     let memory = memory::get_upgrades_memory();
 
     // Read the length of the state bytes.
@@ -64,7 +64,5 @@ pub fn post_upgrade(){
 
     // Deserialize and set the state.
     let state = ciborium::de::from_reader(&*state_bytes).expect("failed to decode state");
-    STATE.with(|s| {
-        *s.borrow_mut() = state
-    });
+    STATE.with(|s| *s.borrow_mut() = state);
 }

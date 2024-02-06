@@ -1,7 +1,6 @@
 type Arg = record {
   icrc7_supply_cap : opt nat;
   icrc7_description : opt text;
-  icrc7_total_supply : nat;
   tx_window : opt nat64;
   icrc7_max_query_batch_size : opt nat;
   permitted_drift : opt nat64;

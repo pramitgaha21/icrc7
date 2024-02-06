@@ -1,7 +1,9 @@
 use candid::Principal;
 use ic_cdk_macros::update;
 
-use crate::{state::STATE, BurnResult, Icrc7BurnArg, Icrc7MintArg, MintResult, TransferArg, TransferResult};
+use crate::{
+    state::STATE, BurnResult, Icrc7BurnArg, Icrc7MintArg, MintResult, TransferArg, TransferResult,
+};
 
 #[update]
 pub fn icrc7_mint(arg: Icrc7MintArg) -> MintResult {
@@ -16,13 +18,13 @@ pub fn icrc7_mint(arg: Icrc7MintArg) -> MintResult {
 }
 
 #[update]
-pub fn icrc7_transfer(args: Vec<TransferArg>) -> Vec<Option<TransferResult>>{
+pub fn icrc7_transfer(args: Vec<TransferArg>) -> Vec<Option<TransferResult>> {
     let caller = ic_cdk::caller();
     STATE.with(|s| s.borrow_mut().icrc7_transfer(&caller, args))
 }
 
 #[update]
-pub fn icrc7_burn(args: Vec<Icrc7BurnArg>) -> Vec<Option<BurnResult>>{
+pub fn icrc7_burn(args: Vec<Icrc7BurnArg>) -> Vec<Option<BurnResult>> {
     let caller = ic_cdk::caller();
     STATE.with(|s| s.borrow_mut().icrc7_burn(&caller, args))
 }

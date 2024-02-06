@@ -7,6 +7,13 @@
         "candid": "icrc7/icrc7.did",
         "optimize": "cycles",
         "wasm": "gzip"
+      },
+      "factory": {
+        "type": "rust",
+        "package": "factory",
+        "candid": "factory/factory.did",
+        "optimize": "cycles",
+        "wasm": "gzip"
       }
     },
     "defaults": {

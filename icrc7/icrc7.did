@@ -1,4 +1,15 @@
 type Account = record { owner : principal; subaccount : opt vec nat8 };
+type BurnError = variant {
+  GenericError : record { message : text; error_code : nat };
+  NonExistingTokenId;
+  Unauthorized;
+  GenericBatchError : record { message : text; error_code : nat };
+};
+type Icrc7BurnArg = record {
+  token_id : nat;
+  memo : opt vec nat8;
+  from_subaccount : opt vec nat8;
+};
 type Icrc7MintArg = record {
   to : Account;
   token_id : nat;
@@ -11,7 +22,6 @@ type Icrc7MintArg = record {
 type InitArg = record {
   icrc7_supply_cap : opt nat;
   icrc7_description : opt text;
-  icrc7_total_supply : nat;
   tx_window : opt nat64;
   minting_account : opt Account;
   icrc7_max_query_batch_size : opt nat;
@@ -25,6 +35,12 @@ type InitArg = record {
   icrc7_logo : opt text;
   icrc7_name : text;
 };
+type MetadataValue = variant {
+  Int : int;
+  Nat : nat;
+  Blob : vec nat8;
+  Text : text;
+};
 type MintError = variant {
   GenericError : record { message : text; error_code : nat };
   SupplyCapReached;
@@ -32,8 +48,10 @@ type MintError = variant {
   GenericBatchError : record { message : text; error_code : nat };
   TokenIdAlreadyExist;
 };
-type Result = variant { Ok : nat; Err : MintError };
-type Result_1 = variant { Ok : nat; Err : TransferError };
+type Result = variant { Ok : nat; Err : BurnError };
+type Result_1 = variant { Ok : nat; Err : MintError };
+type Result_2 = variant { Ok : nat; Err : TransferError };
+type Standard = record { url : text; name : text };
 type TransferArg = record {
   to : Account;
   token_id : nat;
@@ -53,6 +71,8 @@ type TransferError = variant {
 };
 service : (InitArg) -> {
   icrc7_atomic_batch_transfers : () -> (opt bool) query;
+  icrc7_balance_of : (vec Account) -> (vec nat) query;
+  icrc7_burn : (vec Icrc7BurnArg) -> (vec opt Result);
   icrc7_default_take_value : () -> (opt nat) query;
   icrc7_description : () -> (opt text) query;
   icrc7_logo : () -> (opt text) query;
@@ -60,11 +80,17 @@ service : (InitArg) -> {
   icrc7_max_query_batch_size : () -> (opt nat) query;
   icrc7_max_take_value : () -> (opt nat) query;
   icrc7_max_update_batch_size : () -> (opt nat) query;
-  icrc7_mint : (Icrc7MintArg) -> (Result);
+  icrc7_mint : (Icrc7MintArg) -> (Result_1);
   icrc7_name : () -> (text) query;
   icrc7_owner_of : (vec nat) -> (vec opt Account) query;
   icrc7_supply_cap : () -> (opt nat) query;
+  icrc7_supported_standards : () -> (vec Standard) query;
   icrc7_symbol : () -> (text) query;
+  icrc7_token_metadata : (vec nat) -> (
+      vec opt vec record { text; MetadataValue },
+    ) query;
+  icrc7_tokens : (opt nat, opt nat) -> (vec nat) query;
+  icrc7_tokens_of : (Account, opt nat, opt nat) -> (vec nat) query;
   icrc7_total_supply : () -> (nat) query;
-  icrc7_transfer : (vec TransferArg) -> (vec opt Result_1);
+  icrc7_transfer : (vec TransferArg) -> (vec opt Result_2);
 }
