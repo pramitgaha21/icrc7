@@ -346,7 +346,6 @@ impl State {
             });
             arg.to = account_transformer(arg.to);
             if let Err(e) = self.mock_transfer(&current_time, &caller_account, &arg) {
-                let msg = format!("{:?}", txn_results);
                 txn_results[index] = Some(Err(e));
             }
         }
