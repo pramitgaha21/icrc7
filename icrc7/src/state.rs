@@ -54,38 +54,6 @@ impl Icrc7Token {
         }
     }
 
-    // fn clear_expired_approvals(&mut self, current_time: &u64) {
-    //     self.approvals.retain(|approval| {
-    //         approval.expires_at == None || approval.expires_at > Some(*current_time)
-    //     })
-    // }
-
-    // fn approval_check(&mut self, _for: &Account) -> bool {
-    //     self.approvals
-    //         .iter()
-    //         .any(|approval| approval.approved_for == *_for)
-    // }
-
-    // fn approve(&mut self, _for: Account, expires_at: Option<u64>) {
-    //     if let Some(index) = self
-    //         .approvals
-    //         .iter()
-    //         .position(|approval| approval.approved_for == _for)
-    //     {
-    //         let approval = Icrc7TokenApproval {
-    //             approved_for: _for,
-    //             expires_at,
-    //         };
-    //         self.approvals.insert(index, approval);
-    //     } else {
-    //         let approval = Icrc7TokenApproval {
-    //             approved_for: _for,
-    //             expires_at,
-    //         };
-    //         self.approvals.push(approval);
-    //     }
-    // }
-
     fn transfer(&mut self, to: Account) {
         self.token_owner = to;
     }
@@ -248,8 +216,6 @@ impl State {
                     ref from,
                     ref to,
                 } => {
-                    ic_cdk::println!("Transaction: {:?}", txn);
-                    ic_cdk::println!("Transfer Args: {:?}", args);
                     if &args.token_id == tid
                         && caller == from
                         && &args.to == to
@@ -270,7 +236,6 @@ impl State {
                 }
             }
         }
-        ic_cdk::println!("deduplication not found");
         Ok(())
     }
 
@@ -287,7 +252,6 @@ impl State {
     ) -> u128 {
         let txn_id = self.get_txn_id();
         let txn = Transaction::new(txn_id, txn_type, ts, memo);
-        ic_cdk::println!("logged txn: {:?}", txn);
         self.txn_log.insert(txn_id, txn);
         txn_id
     }
@@ -383,7 +347,6 @@ impl State {
             arg.to = account_transformer(arg.to);
             if let Err(e) = self.mock_transfer(&current_time, &caller_account, &arg) {
                 let msg = format!("{:?}", txn_results);
-                ic_cdk::print(&msg);
                 txn_results[index] = Some(Err(e));
             }
         }
