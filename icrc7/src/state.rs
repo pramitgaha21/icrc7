@@ -2,12 +2,12 @@ use std::{cell::RefCell, collections::HashMap};
 
 use crate::{
     icrc7_types::{
-        BurnResult, Icrc7MintArg, Icrc7TokenMetadata, MintError, MintResult, Transaction,
+        BurnResult, MintArg, Icrc7TokenMetadata, MintError, MintResult, Transaction,
         TransactionType, TransferArg, TransferError, TransferResult,
     },
     memory::{get_log_memory, get_token_map_memory, Memory},
     utils::{account_transformer, burn_account},
-    BurnError, Icrc7BurnArg,
+    BurnError, BurnArg,
 };
 use candid::{CandidType, Decode, Encode, Principal};
 use ic_stable_structures::{
@@ -389,7 +389,7 @@ impl State {
         txn_results
     }
 
-    fn mock_mint(&self, caller: &Account, arg: &Icrc7MintArg) -> Result<(), MintError> {
+    fn mock_mint(&self, caller: &Account, arg: &MintArg) -> Result<(), MintError> {
         if let Some(cap) = self.icrc7_supply_cap {
             if cap == self.icrc7_total_supply {
                 return Err(MintError::SupplyCapReached);
@@ -421,7 +421,7 @@ impl State {
         Ok(())
     }
 
-    pub fn icrc7_mint(&mut self, caller: &Principal, mut arg: Icrc7MintArg) -> MintResult {
+    pub fn mint(&mut self, caller: &Principal, mut arg: MintArg) -> MintResult {
         let caller = account_transformer(Account {
             owner: caller.clone(),
             subaccount: arg.from_subaccount,
@@ -453,7 +453,7 @@ impl State {
         Ok(txn_id)
     }
 
-    fn mock_burn(&self, caller: &Account, arg: &Icrc7BurnArg) -> Result<(), BurnError> {
+    fn mock_burn(&self, caller: &Account, arg: &BurnArg) -> Result<(), BurnError> {
         if let Some(ref memo) = arg.memo {
             if memo.len() as u128
                 > self
@@ -477,10 +477,10 @@ impl State {
         }
     }
 
-    pub fn icrc7_burn(
+    pub fn burn(
         &mut self,
         caller: &Principal,
-        mut args: Vec<Icrc7BurnArg>,
+        mut args: Vec<BurnArg>,
     ) -> Vec<Option<BurnResult>> {
         if args.len() == 0 {
             return vec![Some(Err(BurnError::GenericBatchError {

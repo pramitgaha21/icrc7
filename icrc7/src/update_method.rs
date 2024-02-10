@@ -2,11 +2,11 @@ use candid::Principal;
 use ic_cdk_macros::update;
 
 use crate::{
-    state::STATE, BurnResult, Icrc7BurnArg, Icrc7MintArg, MintResult, TransferArg, TransferResult,
+    state::STATE, BurnResult, BurnArg, MintArg, MintResult, TransferArg, TransferResult,
 };
 
 #[update]
-pub fn icrc7_mint(arg: Icrc7MintArg) -> MintResult {
+pub fn mint(arg: MintArg) -> MintResult {
     let caller = ic_cdk::caller();
     if caller == Principal::anonymous() {
         return Err(crate::MintError::GenericBatchError {
@@ -14,7 +14,7 @@ pub fn icrc7_mint(arg: Icrc7MintArg) -> MintResult {
             message: "Anonymous Identity".into(),
         });
     }
-    STATE.with(|s| s.borrow_mut().icrc7_mint(&caller, arg))
+    STATE.with(|s| s.borrow_mut().mint(&caller, arg))
 }
 
 #[update]
@@ -24,7 +24,7 @@ pub fn icrc7_transfer(args: Vec<TransferArg>) -> Vec<Option<TransferResult>> {
 }
 
 #[update]
-pub fn icrc7_burn(args: Vec<Icrc7BurnArg>) -> Vec<Option<BurnResult>> {
+pub fn burn(args: Vec<BurnArg>) -> Vec<Option<BurnResult>> {
     let caller = ic_cdk::caller();
-    STATE.with(|s| s.borrow_mut().icrc7_burn(&caller, args))
+    STATE.with(|s| s.borrow_mut().burn(&caller, args))
 }

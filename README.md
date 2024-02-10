@@ -39,7 +39,7 @@ icrc7_name= "ICP Flower"
 
 #### Minting NFT
 ```bash
-dfx canister call icrc7 icrc7_mint '(record{                                  
+dfx canister call icrc7 mint '(record{                                  
 to= record {
     owner = principal "4cu2l-slkj7-mo7ap-onxrm-ppr32-cidse-pln24-3dnaj-wtc7b-tn7dm-dae";                                     
     subaccount = opt blob "\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00";

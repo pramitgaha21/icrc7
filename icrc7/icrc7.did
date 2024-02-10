@@ -49,8 +49,8 @@ type MintError = variant {
   TokenIdAlreadyExist;
 };
 type Result = variant { Ok : nat; Err : BurnError };
-type Result_1 = variant { Ok : nat; Err : MintError };
-type Result_2 = variant { Ok : nat; Err : TransferError };
+type Result_1 = variant { Ok : nat; Err : TransferError };
+type Result_2 = variant { Ok : nat; Err : MintError };
 type Standard = record { url : text; name : text };
 type TransferArg = record {
   to : Account;
@@ -80,7 +80,6 @@ service : (InitArg) -> {
   icrc7_max_query_batch_size : () -> (opt nat) query;
   icrc7_max_take_value : () -> (opt nat) query;
   icrc7_max_update_batch_size : () -> (opt nat) query;
-  icrc7_mint : (Icrc7MintArg) -> (Result_1);
   icrc7_name : () -> (text) query;
   icrc7_owner_of : (vec nat) -> (vec opt Account) query;
   icrc7_supply_cap : () -> (opt nat) query;
@@ -92,5 +91,6 @@ service : (InitArg) -> {
   icrc7_tokens : (opt nat, opt nat) -> (vec nat) query;
   icrc7_tokens_of : (Account, opt nat, opt nat) -> (vec nat) query;
   icrc7_total_supply : () -> (nat) query;
-  icrc7_transfer : (vec TransferArg) -> (vec opt Result_2);
+  icrc7_transfer : (vec TransferArg) -> (vec opt Result_1);
+  mint : (Icrc7MintArg) -> (Result_2);
 }

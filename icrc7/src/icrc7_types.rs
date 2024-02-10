@@ -132,7 +132,7 @@ pub type TransferResult = Result<u128, TransferError>;
 pub type Icrc7TokenMetadata = HashMap<String, MetadataValue>;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct Icrc7MintArg {
+pub struct MintArg {
     pub from_subaccount: Option<Subaccount>,
     pub to: Account,
     pub token_id: u128,
@@ -156,7 +156,7 @@ pub enum MintError {
 pub type MintResult = Result<u128, MintError>;
 
 #[derive(CandidType, Deserialize, Clone)]
-pub struct Icrc7BurnArg {
+pub struct BurnArg {
     pub from_subaccount: Option<Subaccount>,
     pub token_id: u128,
     pub memo: Option<Vec<u8>>,
