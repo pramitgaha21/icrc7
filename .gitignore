@@ -5,3 +5,9 @@
 /node_modules
 /pnpm-lock.yaml
 /wasm_files
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
