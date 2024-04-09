@@ -1,6 +1,18 @@
 {
   "version": 1,
-  "canisters": {},
+  "canisters": {
+    "icrc7": {
+      "type": "custom",
+      "optimize": "cycles",
+      "wasm": "wasm_files/icrc7.wasm.gz",
+      "candid": "icrc7/icrc7.did",
+      "metadata": [
+        {
+          "name": "candid:service"
+        }
+      ]
+    }
+  },
   "defaults": {
     "build": {
       "packtool": "",

@@ -1,0 +1,13 @@
+type ArchiveInfo = record {
+  block_range_end : nat;
+  canister_id : principal;
+  block_range_start : nat;
+};
+type BlockType = record { url : text; block_type : text };
+type DataCertificate = record { certificate : opt blob; hash_tree : blob };
+type GetArchiveArgs = record { from : opt principal };
+service : {
+  icrc3_get_archives : (GetArchiveArgs) -> (vec ArchiveInfo) query;
+  icrc3_get_tip_certificate : () -> (opt DataCertificate) query;
+  icrc3_supported_block_types : () -> (vec BlockType) query;
+}
