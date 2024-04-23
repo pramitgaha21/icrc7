@@ -178,33 +178,69 @@ pub fn icrc7_permitted_drift() -> Option<u128> {
 
 #[query]
 pub fn icrc7_token_metadata(token_ids: Vec<u128>) -> Vec<Option<Icrc7TokenMetadata>> {
-    todo!()
+    query_token_map(|token_map| {
+        token_ids
+            .into_iter()
+            .map(|id| {
+                if let Some(token) = token_map.get(&id) {
+                    Some(token.token_metadata())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    })
 }
 
 #[query]
 pub fn icrc7_owner_of(token_ids: Vec<u128>) -> Vec<Option<Account>> {
-    todo!()
+    query_token_map(|token_map| {
+        token_ids
+            .into_iter()
+            .map(|id| {
+                if let Some(token) = token_map.get(&id) {
+                    Some(token.owner)
+                } else {
+                    None
+                }
+            })
+            .collect()
+    })
 }
 
 #[query]
 pub fn icrc7_balance_of(accounts: Vec<Account>) -> Vec<Nat> {
-    todo!()
+    query_token_map(|token_map| {
+        accounts
+            .into_iter()
+            .map(|account| {
+                let mut balance = Nat::from(0u128);
+                token_map.iter().for_each(|(_k, v)| {
+                    if v.owner == account {
+                        balance += Nat::from(1u128);
+                    }
+                });
+                balance
+            })
+            .collect()
+    })
 }
 
-#[query]
 pub fn icrc7_tokens(prev: Option<u128>, take: Option<u128>) -> Vec<u128> {
     todo!()
 }
 
-#[query]
 pub fn icrc7_tokens_of(account: Account, prev: Option<u128>, take: Option<u128>) -> Vec<u128> {
     todo!()
 }
 
-#[update]
 pub fn icrc7_transfer(args: Vec<TransferArg>) -> Vec<Option<TransferResult>> {
     todo!()
 }
+
+pub fn mint() {}
+
+pub fn burn() {}
 
 #[derive(CandidType, Debug)]
 pub struct Standard {
@@ -213,7 +249,7 @@ pub struct Standard {
 }
 
 #[query]
-pub fn icrc61_supported_standards() -> Vec<Standard> {
+pub fn icrc10_supported_standards() -> Vec<Standard> {
     vec![
         Standard {
             name: "ICRC-7".into(),

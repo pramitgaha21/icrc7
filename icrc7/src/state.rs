@@ -138,21 +138,6 @@ pub fn query_token_map<R>(f: impl FnOnce(&TokenMap) -> R) -> R {
     TOKEN_MAP.with_borrow(|map| f(map))
 }
 
-// pub fn update_token_map<R>(f: impl FnOnce(&mut TokenMap) -> R) -> R {
-//     TOKEN_MAP.with_borrow_mut
-//     (|mut map| f(&mut map))
-// }
-
-pub fn mock_transfer_on_token(){
-    TOKEN_MAP.with_borrow_mut(|map|{
-        let mut token: Token = map.get(&1).unwrap();
-        token.transfer(Account{
-            owner: Principal::from_text("xxx").unwrap(), subaccount: None
-        });
-        map.insert(1, token);
-    })
-}
-
 pub fn get_txn_id() -> u128 {
     COLLECTION_METADATA.with_borrow_mut(|m| {
         let mut current_data = m.get().clone();
