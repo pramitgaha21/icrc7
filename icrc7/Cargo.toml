@@ -15,3 +15,4 @@ icrc-ledger-types = "0.1.5"
 serde = "1.0.197"
 icrc-nft-types = { git = "https://github.com/pramitgaha21/icrc-nft-types.git" }
 ciborium = "0.2.2"
+itertools = "0.12.1"
