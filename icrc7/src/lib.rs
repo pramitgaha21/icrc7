@@ -12,6 +12,7 @@ use icrc_nft_types::{
     },
     Account,
 };
+use itertools::Itertools;
 use serde::Deserialize;
 use state::{query_metadata, query_token_map};
 
@@ -227,11 +228,46 @@ pub fn icrc7_balance_of(accounts: Vec<Account>) -> Vec<Nat> {
 }
 
 pub fn icrc7_tokens(prev: Option<u128>, take: Option<u128>) -> Vec<u128> {
-    todo!()
+    query_token_map(|token_map| {
+        token_map
+            .iter()
+            .map(|(_map_id, token)| token.id)
+            .sorted()
+            .filter(|token_id| {
+                *token_id
+                    > match prev {
+                        Some(strat_token) => strat_token,
+                        _ => 0,
+                    }
+            })
+            .take(match take {
+                Some(to_take) => to_take,
+                _ => icrc7_default_take_value().unwrap(),
+            } as usize)
+            .collect::<Vec<u128>>()
+    })
 }
 
 pub fn icrc7_tokens_of(account: Account, prev: Option<u128>, take: Option<u128>) -> Vec<u128> {
-    todo!()
+    query_token_map(|token_map| {
+        token_map
+            .iter()
+            .filter(|(_k, v)| v.owner == account)
+            .map(|(_k, v)| v.id)
+            .sorted()
+            .filter(|token_id| {
+                *token_id
+                    > match prev {
+                        Some(strat_token) => strat_token,
+                        _ => 0,
+                    }
+            })
+            .take(match take {
+                Some(to_take) => to_take,
+                _ => icrc7_default_take_value().unwrap(),
+            } as usize)
+            .collect::<Vec<u128>>()
+    })
 }
 
 pub fn icrc7_transfer(args: Vec<TransferArg>) -> Vec<Option<TransferResult>> {
